@@ -41,11 +41,6 @@ ask EMAIL      "Email for HTTPS certificate notices"
 DUCK_SUB="${DUCK_SUB%.duckdns.org}"
 DOMAIN="$DUCK_SUB.duckdns.org"
 
-mkdir -p "$CONF_DIR"
-umask 077
-printf 'DUCK_SUB=%q\nDUCK_TOKEN=%q\nEMAIL=%q\n' "$DUCK_SUB" "$DUCK_TOKEN" "$EMAIL" > "$CONF_FILE"
-umask 022
-
 say "Installing nginx, git and certbot"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
@@ -58,8 +53,17 @@ cat > /usr/local/bin/duckdns-update <<'UPD'
 curl -fsS "https://www.duckdns.org/update?domains=$DUCK_SUB&token=$DUCK_TOKEN&ip="
 UPD
 chmod 700 /usr/local/bin/duckdns-update
-result="$(/usr/local/bin/duckdns-update || true)"
-[ "$result" = "OK" ] || fail "DuckDNS said '$result' — check the subdomain and token, then run this again."
+result="$(curl -fsS "https://www.duckdns.org/update?domains=$DUCK_SUB&token=$DUCK_TOKEN&ip=" || true)"
+if [ "$result" != "OK" ]; then
+  rm -f "$CONF_FILE"
+  fail "DuckDNS said '$result' — the subdomain or token is wrong. Check the spelling on duckdns.org, then run this again."
+fi
+# Only remember answers once DuckDNS has accepted them.
+mkdir -p "$CONF_DIR"
+umask 077
+printf 'DUCK_SUB=%q\nDUCK_TOKEN=%q\nEMAIL=%q\n' "$DUCK_SUB" "$DUCK_TOKEN" "$EMAIL" > "$CONF_FILE"
+umask 022
+
 echo "*/5 * * * * root /usr/local/bin/duckdns-update >/dev/null 2>&1" > /etc/cron.d/duckdns
 chmod 644 /etc/cron.d/duckdns
 
