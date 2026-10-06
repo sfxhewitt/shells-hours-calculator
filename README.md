@@ -23,6 +23,17 @@ Open the link above, then:
 
 Your shifts are saved on your phone only (nothing is uploaded anywhere), so use **Settings → Download backup** every now and then.
 
+## Hosting it on your own VPS (DuckDNS + HTTPS)
+
+On an Ubuntu/Debian server, run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/sfxhewitt/shells-hours-calculator/main/deploy/duckdns-vps.sh -o duckdns-vps.sh
+sudo bash duckdns-vps.sh
+```
+
+It asks for your DuckDNS subdomain, token (from https://www.duckdns.org) and email, then sets up nginx, keeps DuckDNS pointed at the server, and turns on HTTPS. Run it again any time to update the app.
+
 ## Development
 
 It's plain HTML/CSS/JS — no build step. Run `npx http-server .` and open http://localhost:8080.
