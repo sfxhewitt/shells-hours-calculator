@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Shell's Shift Diary</title>
+  <meta name="description" content="Track your shifts, hours and pay so you never get underpaid.">
+  <meta name="theme-color" content="#ff5fa2">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Shift Diary">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="bg-blobs" aria-hidden="true"><span></span><span></span><span></span></div>
+
+  <main class="app">
+    <!-- HOME -->
+    <section class="view" id="view-home" data-view="home">
+      <header class="hero">
+        <p class="hero-date" id="today-label"></p>
+        <h1 class="script">Hey <span id="hello-name">Michelle</span> <span class="wiggle">💖</span></h1>
+        <p class="hero-sub">Every minute you work, you get paid for. Period. ✨</p>
+      </header>
+
+      <div class="card clock-card" id="clock-card">
+        <div class="clock-idle" id="clock-idle">
+          <p class="muted">Not clocked in</p>
+          <button class="btn btn-big" id="btn-clock-in">💅 Clock in</button>
+        </div>
+        <div class="clock-active hidden" id="clock-active">
+          <p class="muted">On shift since <strong id="clock-since"></strong></p>
+          <p class="timer" id="clock-timer">0:00:00</p>
+          <div class="row gap">
+            <button class="btn btn-big" id="btn-clock-out">🎀 Clock out</button>
+            <button class="btn btn-ghost btn-small" id="btn-clock-cancel" title="Cancel clock-in">Oops, cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="card stat">
+          <p class="stat-label">This week</p>
+          <p class="stat-value" id="stat-week-hours">0h</p>
+          <p class="stat-sub" id="stat-week-pay">£0.00</p>
+        </div>
+        <div class="card stat">
+          <p class="stat-label" id="stat-period-label">This pay period</p>
+          <p class="stat-value" id="stat-period-hours">0h</p>
+          <p class="stat-sub" id="stat-period-pay">£0.00</p>
+        </div>
+        <div class="card stat">
+          <p class="stat-label">Holiday earned</p>
+          <p class="stat-value" id="stat-holiday">0h</p>
+          <p class="stat-sub">12.07% of hours worked</p>
+        </div>
+        <div class="card stat">
+          <p class="stat-label">All time</p>
+          <p class="stat-value" id="stat-all-hours">0h</p>
+          <p class="stat-sub" id="stat-all-pay">£0.00</p>
+        </div>
+      </div>
+
+      <div class="card wage-check" id="wage-check"></div>
+
+      <div class="section-head">
+        <h2>Recent shifts</h2>
+        <button class="btn btn-small" data-action="add-shift">＋ Add shift</button>
+      </div>
+      <div id="recent-list" class="shift-list"></div>
+    </section>
+
+    <!-- SHIFTS -->
+    <section class="view hidden" id="view-shifts" data-view="shifts">
+      <header class="page-head">
+        <h1 class="script">My shifts 🗓️</h1>
+        <button class="btn btn-small" data-action="add-shift">＋ Add shift</button>
+      </header>
+      <div id="weeks-list"></div>
+      <div class="row gap center">
+        <button class="btn btn-ghost btn-small" id="btn-export-csv">⬇️ Download as spreadsheet (CSV)</button>
+      </div>
+    </section>
+
+    <!-- PAYSLIP CHECK -->
+    <section class="view hidden" id="view-check" data-view="check">
+      <header class="page-head">
+        <h1 class="script">Payslip check 🔍</h1>
+      </header>
+      <div class="card">
+        <p class="muted small">When your payslip comes in, pop the numbers in here. We'll compare them with the shifts you logged.</p>
+        <div class="row gap wrap quick-periods">
+          <button class="chip" id="btn-period-current">This period</button>
+          <button class="chip" id="btn-period-last">Last period</button>
+          <button class="chip" id="btn-period-before">Period before</button>
+        </div>
+        <form id="check-form" class="form-grid">
+          <label>From<input type="date" name="from" required></label>
+          <label>To<input type="date" name="to" required></label>
+          <label>Hours on payslip<input type="number" name="paidHours" step="0.01" min="0" inputmode="decimal" placeholder="e.g. 32.5"></label>
+          <label>Basic pay on payslip (£)<input type="number" name="paidPay" step="0.01" min="0" inputmode="decimal" placeholder="e.g. 413.08" required></label>
+          <button class="btn span-2" type="submit">✨ Check my pay</button>
+        </form>
+      </div>
+      <div id="check-result"></div>
+      <div class="section-head"><h2>Past checks</h2></div>
+      <div id="check-history"></div>
+      <details class="card tips">
+        <summary>💡 What to do if you've been underpaid</summary>
+        <ol>
+          <li>Double-check your logged shifts match your rota and clock-in times.</li>
+          <li>Ask your manager or payroll, politely and in writing if you can, showing your shift list (download the CSV from <em>My shifts</em>).</li>
+          <li>Underpayments are usually fixed in the next pay run — check it shows up as back pay.</li>
+          <li>Still stuck? Acas gives free, confidential advice: <a href="https://www.acas.org.uk/contact" target="_blank" rel="noopener">acas.org.uk</a> · 0300 123 1100.</li>
+          <li>Being paid below minimum wage can be reported to HMRC: <a href="https://www.gov.uk/pay-and-work-rights" target="_blank" rel="noopener">gov.uk/pay-and-work-rights</a>.</li>
+        </ol>
+      </details>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="view hidden" id="view-settings" data-view="settings">
+      <header class="page-head">
+        <h1 class="script">Settings 🌸</h1>
+      </header>
+      <form id="settings-form" class="card form-grid">
+        <label class="span-2">Your name<input name="name" type="text" maxlength="40"></label>
+        <label>Your age<select name="ageBand">
+          <option value="21+">21 or over</option>
+          <option value="18-20">18 – 20</option>
+          <option value="16-17">16 – 17</option>
+          <option value="apprentice">Apprentice</option>
+        </select></label>
+        <label>Hourly rate (£)<input name="rate" type="number" step="0.01" min="0" inputmode="decimal" required></label>
+        <label>Usual unpaid break (mins)<input name="defaultBreak" type="number" step="1" min="0" inputmode="numeric"></label>
+        <label>Week starts on<select name="weekStart">
+          <option value="1">Monday</option>
+          <option value="0">Sunday</option>
+          <option value="6">Saturday</option>
+          <option value="5">Friday</option>
+          <option value="4">Thursday</option>
+          <option value="3">Wednesday</option>
+          <option value="2">Tuesday</option>
+        </select></label>
+        <label>I get paid<select name="payFrequency">
+          <option value="weekly">Weekly</option>
+          <option value="fortnightly">Every 2 weeks</option>
+          <option value="fourweekly">Every 4 weeks</option>
+          <option value="monthly">Monthly (calendar month)</option>
+        </select></label>
+        <label>A pay period starts on<input name="periodAnchor" type="date"></label>
+        <fieldset class="span-2">
+          <legend>Pay multipliers (1 = normal rate, 1.5 = time and a half)</legend>
+          <div class="form-grid tight">
+            <label>Overtime<input name="mult_overtime" type="number" step="0.05" min="0" inputmode="decimal"></label>
+            <label>Sunday<input name="mult_sunday" type="number" step="0.05" min="0" inputmode="decimal"></label>
+            <label>Bank holiday<input name="mult_bankholiday" type="number" step="0.05" min="0" inputmode="decimal"></label>
+            <label>Night<input name="mult_night" type="number" step="0.05" min="0" inputmode="decimal"></label>
+          </div>
+        </fieldset>
+        <label class="span-2">Look<select name="theme">
+          <option value="auto">Match my phone</option>
+          <option value="light">Pastel pink ☀️</option>
+          <option value="dark">Midnight glam 🌙</option>
+        </select></label>
+        <button class="btn span-2" type="submit">💾 Save settings</button>
+      </form>
+
+      <div class="card">
+        <h2>Back up your data</h2>
+        <p class="muted small">Your shifts are saved on this phone only. Download a backup now and then so nothing gets lost if you change phones or clear your browser.</p>
+        <div class="row gap wrap">
+          <button class="btn btn-small" id="btn-backup">⬇️ Download backup</button>
+          <label class="btn btn-small btn-ghost file-btn">⬆️ Restore backup<input type="file" id="restore-file" accept="application/json,.json"></label>
+        </div>
+        <hr>
+        <button class="btn btn-small btn-danger" id="btn-wipe">🗑️ Delete everything</button>
+      </div>
+      <p class="muted small center">Minimum wage rates shown are from 1 April 2026. Always check <a href="https://www.gov.uk/national-minimum-wage-rates" target="_blank" rel="noopener">gov.uk</a> for the latest.</p>
+    </section>
+  </main>
+
+  <nav class="tabbar" aria-label="Main">
+    <button class="tab active" data-tab="home"><span>🏠</span>Home</button>
+    <button class="tab" data-tab="shifts"><span>🗓️</span>Shifts</button>
+    <button class="tab tab-add" data-action="add-shift" aria-label="Add shift"><span>＋</span></button>
+    <button class="tab" data-tab="check"><span>🔍</span>Payslip</button>
+    <button class="tab" data-tab="settings"><span>🌸</span>Settings</button>
+  </nav>
+
+  <!-- SHIFT DIALOG -->
+  <dialog id="shift-dialog">
+    <form id="shift-form" method="dialog" class="form-grid">
+      <h2 class="span-2 script" id="shift-dialog-title">New shift ✨</h2>
+      <input type="hidden" name="id">
+      <label class="span-2">Date<input type="date" name="date" required></label>
+      <label>Start<input type="time" name="start" required></label>
+      <label>Finish<input type="time" name="end" required></label>
+      <label>Unpaid break (mins)<input type="number" name="break" min="0" step="1" inputmode="numeric"></label>
+      <label>Shift type<select name="type">
+        <option value="normal">Normal</option>
+        <option value="overtime">Overtime</option>
+        <option value="sunday">Sunday</option>
+        <option value="bankholiday">Bank holiday</option>
+        <option value="night">Night</option>
+      </select></label>
+      <label class="span-2">Hourly rate (£)<input type="number" name="rate" min="0" step="0.01" inputmode="decimal" required></label>
+      <label class="span-2">Notes<input type="text" name="note" maxlength="200" placeholder="e.g. stayed late to cover tills"></label>
+      <p class="span-2 preview" id="shift-preview"></p>
+      <div class="span-2 row gap">
+        <button class="btn btn-ghost" type="button" id="btn-shift-cancel">Cancel</button>
+        <button class="btn grow" type="submit" value="save">💖 Save shift</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="sparkles" id="sparkles" aria-hidden="true"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
